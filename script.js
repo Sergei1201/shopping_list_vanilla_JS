@@ -36,11 +36,68 @@ const addItem = (e) => {
     // Append the li to the ul
     itemList.appendChild(li)
 
+    // Add to Local Storage
+    addItemToLocalStorage(newItem)
+
     checkUI()
 
     // Clear Input
     input.value = ''
 
+}
+
+// Add Item to LS
+const addItemToLocalStorage = (item) => {
+    let items
+    // Check if LS is empty
+    if (localStorage.getItem('items') === null) {
+        // Set an empty array
+        items = []
+    } else {
+        // Otherwise, pull out existing items from LS and put add them into an array
+        items = JSON.parse(localStorage.getItem('items'))
+    }  
+    items.push(item)
+    // Reset LS
+    localStorage.setItem('items', JSON.stringify(items))
+}
+
+// Get Items from LS when the page is loaded
+const getItemsFromLocalStorage = () => {
+    let items
+    // Check if LS is empty
+    if (localStorage.getItem('items') === null) {
+        // Set an empty array
+        items = []
+    } else {
+        // Pull out the info from LS and add set it to an array
+        items = JSON.parse(localStorage.getItem('items'))
+    }
+
+    // Loop through items and create elements for displaying on the page
+    items.forEach((item) => {
+        const li = document.createElement('li')
+        // Create a text node and append to li
+        li.appendChild(document.createTextNode(item))
+
+        // Create a button with certain classes
+        const button = createButton('remove-item btn-link text-red')
+
+        // Create an icon with certain classes
+        const icon = createIcon('fa-solid fa-xmark')
+
+        // Append the icon to the button
+        button.appendChild(icon)
+
+        // Append the button to the li
+        li.appendChild(button)
+
+        // Append the li to the ul
+          itemList.appendChild(li)
+        
+        // Check UI
+        checkUI()
+    })
 }
 
 // Create Button With Classes
@@ -67,16 +124,44 @@ const removeItem = (e) => {
              e.target.parentElement.parentElement.remove()
         }
     }
+    // Remove Item from LS
+    removeItemFromLocalStorage(e.target.parentElement.parentElement)
     checkUI()
+}
+
+// Remove Item From LS
+const removeItemFromLocalStorage = (element) => {
+    let items
+    // Check if LS is empty
+    if (localStorage.getItem('items') === null) {
+        // Initialize an empty array
+        items = []
+    } else {
+        // Pull out the info from LS and put it into an array
+        items = JSON.parse(localStorage.getItem('items'))
+    }
+        items.forEach((item, index) => {
+            if (item === element.textContent) {
+                items.splice(index, 1)
+            }
+        })
+        // Reset LS
+        localStorage.setItem('items', JSON.stringify(items))
 }
 
 const removeItems = () => {
     while (itemList.firstChild) {
         itemList.removeChild(itemList.firstChild)
     }
+    // Remove from LS
+    removeAllFromLocalStorage()
     checkUI()
 }
 
+// Remove All Items From LS
+const removeAllFromLocalStorage = () => {
+    localStorage.clear()
+}
 // Filter Items
 const filterItems = (e) => {
     const text = e.target.value.toLowerCase()
@@ -115,6 +200,8 @@ itemList.addEventListener('click', removeItem)
 clearBtn.addEventListener('click', removeItems)
 // Add Event Listener on Filter Items
 filter.addEventListener('keyup', filterItems)
+// Get items from LS when the page has been loaded and display them
+document.addEventListener('DOMContentLoaded', getItemsFromLocalStorage)
 
 checkUI()
 
