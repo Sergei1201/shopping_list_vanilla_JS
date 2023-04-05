@@ -5,6 +5,8 @@ const clearBtn = document.getElementById('clear')
 const filter = document.getElementById('filter')
 const items = itemList.querySelectorAll('li')
 const itemsLI = document.querySelectorAll('li')
+const formBtn = form.querySelector('.btn') 
+let isEditMode = false
 
 
 // Add Item
@@ -32,6 +34,23 @@ const addItem = (e) => {
 
     // Append the button to the li
     li.appendChild(button)
+
+   // Check if edit mode is enabled
+   if (isEditMode) {
+    // Select the current item
+    const itemToEdit = itemList.querySelector('.edit-item')
+    // Remove from LS
+    removeItemFromLocalStorage(itemToEdit)
+    // Remove the class
+    itemToEdit.classList.remove('edit-item')
+    // Remove from UI
+    itemToEdit.remove()
+    // Edit mode to false
+    isEditMode = false
+   } else if (checkIfItemExists(newItem)) {
+        alert('Item already exists')
+        return
+    }
 
     // Append the li to the ul
     itemList.appendChild(li)
@@ -118,16 +137,36 @@ const createIcon = (classes) => {
     return icon
 }
 
-const removeItem = (e) => {
+const onClickItem = (e) => {
     if (e.target.parentElement.classList.contains('remove-item')) {
-        if (confirm('Are you sure?')) {
-             e.target.parentElement.parentElement.remove()
-        }
+             removeItem(e.target.parentElement.parentElement)
+    } else {
+        setItemToEditMode(e.target)
     }
-    // Remove Item from LS
-    removeItemFromLocalStorage(e.target.parentElement.parentElement)
-    checkUI()
+    
 }
+
+// Set Item To Edit Mode
+const setItemToEditMode = (item) => {
+    isEditMode = true
+    itemList.querySelectorAll('li').forEach((i) => i.classList.remove('edit-item'))
+    item.classList.add('edit-item')
+    input.value = item.textContent
+    formBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Edit Item'
+    formBtn.style.backgroundColor = 'green'
+
+}
+
+// Remove Item
+const removeItem = (item) => {
+    if (confirm('Are you sure?')) {
+        item.remove()
+        // Remove from LS
+        removeItemFromLocalStorage(item)
+        checkUI()
+    }
+}
+
 
 // Remove Item From LS
 const removeItemFromLocalStorage = (element) => {
@@ -179,8 +218,21 @@ const filterItems = (e) => {
     })
 }
 
+// If Item Already Exists
+const checkIfItemExists = (element) => {
+    let items
+    if (localStorage.getItem('items') === null) {
+        items = []
+    } else {
+        items = JSON.parse(localStorage.getItem('items'))
+    }
+    // Returns true or false
+    return items.includes(element)
+}
+
 // Check UI
 const checkUI = () => {
+    input.value = ''
     const items = itemList.querySelectorAll('li')
     if (items.length === 0) {
         filter.style.display = 'none'
@@ -189,13 +241,15 @@ const checkUI = () => {
         filter.style.display = 'block'
         clearBtn.style.display = 'block'
     }
+    formBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Item'
+    formBtn.style.backgroundColor = '#333333'
 }
 
 
 // Add Event Listener on Form Submission
 form.addEventListener('submit', addItem)
 // Add Event Listener on Remove Item
-itemList.addEventListener('click', removeItem)
+itemList.addEventListener('click', onClickItem)
 // Add Event Listener on Remove Items
 clearBtn.addEventListener('click', removeItems)
 // Add Event Listener on Filter Items
